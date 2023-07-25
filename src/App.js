@@ -11,13 +11,13 @@ function App() {
 
   // Fetch Temperature Data from Backend & set in the three states:
   const setData = () => {
-    // setHeat(70);
-    // setCool(74);
-    // setTemperature(72);
+    setHeat(60);
+    setCool(64);
+    setTemperature(82);
   };
 
   useEffect(() => {
-    // setData();
+    setData();
   }, []);
 
   return (
@@ -25,6 +25,7 @@ function App() {
       <div className="bg-dark d-flex justify-content-center align-items-center">
         <div className="bg-dark d-flex flex-column justify-content-center align-items-center">
           {/* <Gauge value1={0.7 / 2} value2={(2 - 0.74) / 2} temperature="72°" /> */}
+          {/* <Gauge value1={heat / 100 / 2} value2={(2 - cool / 100) / 2} temperature={`${temperature}°`} /> */}
           <Gauge value1={heat / 100 / 2} value2={(2 - cool / 100) / 2} temperature={`${temperature}°`} />
 
           <div

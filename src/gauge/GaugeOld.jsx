@@ -25,6 +25,8 @@ function drawBlueCircle(ctx, x, y, radius) {
 function Gauge({ value1, value2, temperature }) {
   const canvasRef = useRef(null);
 
+  // useEffect(z
+
   useEffect(() => {
     const canvas = canvasRef.current;
     console.log({ canvas });
