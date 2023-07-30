@@ -100,7 +100,8 @@ function Gauge({ value1, value2, temperature, onValue1Change, onValue2Change }) 
       ctx.strokeStyle = grd2;
       ctx.stroke();
 
-      const midAngle = (valueRad1 + valueRad2) / 2;
+      // const midAngle = (valueRad1 + valueRad2) / 2; // Movable Yellow-Marker b/w both gauges.
+      const midAngle = -1.6; // Fixed Yellow-Marker in the center.
       const startX = x + (radius - 20) * Math.cos(midAngle);
       const startY = y + (radius - 20) * Math.sin(midAngle);
       const endX = x + (radius + 20) * Math.cos(midAngle);
