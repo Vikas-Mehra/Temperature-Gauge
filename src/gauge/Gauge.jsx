@@ -167,77 +167,41 @@ function Gauge({ value1, value2, temperature, onValue1Change }) {
         greyCircleRadius
       );
 
-      // const updateValue1 = (mouseX, mouseY) => {
-      //   console.log(`updateValue1 :>> `, { mouseX, mouseY });
-      //   const angle = Math.atan2(mouseY - y, mouseX - x);
-      //   // Calculate the new value1 based on the angle
-      //   const minRad = 0.75 * Math.PI;
-      //   const maxRad = 2.25 * Math.PI;
-      //   let newValue1 = (angle - minRad) / (maxRad - minRad);
-      //   newValue1 *= 200;
-      //   newValue1 = parseInt(newValue1);
-      //   console.log(`newValue1 :>> `, newValue1);
-      //   onValue1Change(newValue1);
-      // };
-
       const updateValue1 = (mouseX, mouseY) => {
-        // console.log(`updateValue1 :>> `, { mouseX, mouseY });
-        const angle = Math.atan2(mouseY - y, mouseX - x);
-
-        // Calculate the new value1 based on the angle
-        const minRad = 0.75 * Math.PI;
-        const maxRad = 2.25 * Math.PI;
+        const angle = Math.atan2(y - mouseY, x - mouseX);
         let newValue1 = (angle - minRad) / (maxRad - minRad);
-        console.log(`newValue1 :>> `, newValue1);
-
-        // Normalize the angle to be between 0 and 1
+        // console.log(`newValue1 :>> `, newValue1);
         if (newValue1 < 0) {
-          newValue1 *= -1;
+          newValue1 += 1;
         }
-
-        // Invert the slider value
-        newValue1 = 1 - newValue1;
-
         newValue1 = Math.abs(newValue1);
         newValue1 *= 100;
         newValue1 = parseInt(newValue1);
-        // newValue1 = 100 - newValue1;
-        // console.log(`newValue1 :>> `, newValue1);
-        // newValue1 = Math.max(newValue1, 100);
-
         onValue1Change(newValue1);
       };
 
-      const isMouseInRedCircle = (x, y) => {
-        const centerX = canvas.width / 2 + (radius + 4.5) * Math.cos(valueRad1);
-        const centerY = canvas.height / 2 + (radius - 101) * Math.sin(valueRad1);
-        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+      const isMouseInRedCircle = (mouseX, mouseY) => {
+        const centerX = x + radius * Math.cos(valueRad1);
+        const centerY = y + radius * Math.sin(valueRad1);
+        const distance = Math.sqrt((mouseX - centerX) ** 2 + (mouseY - centerY) ** 2);
+        // drawBlueCircle(ctx, centerX, centerY, 41);
         return distance <= 41;
       };
 
       const handleMouseDown = (e) => {
-        // const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        // console.log("handleMouseDown :>> ", { x, y });
-
         if (isMouseInRedCircle(x, y)) {
-          // console.log("isMouseInRedCircle TRUE :>> ", { x, y });
           setIsDragging(true);
-          // handleMouseMove()
         }
       };
 
       const handleMouseMove = (e) => {
-        // console.log("handleMouseMove:", e);
-
         if (isDragging) {
-          // const canvas = canvasRef.current;
           const rect = canvas.getBoundingClientRect();
           const x = e.clientX - rect.left;
           const y = e.clientY - rect.top;
-          // console.log("Mouse Move (isDragging):", x, y);
           updateValue1(x, y);
         }
       };
