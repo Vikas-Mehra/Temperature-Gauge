@@ -10,9 +10,13 @@ function App() {
   const [temperature, setTemperature] = useState(0);
 
   const handleValue1Change = (newValue1) => {
-    // setValue1(newValue1);
     setHeat(newValue1);
     setTemperature((newValue1 + cool) / 2);
+  };
+
+  const handleValue2Change = (newValue2) => {
+    setCool(newValue2);
+    setTemperature((heat + newValue2) / 2);
   };
 
   // Fetch Temperature Data from Backend & set in the three states:
@@ -37,6 +41,7 @@ function App() {
             value2={(2 - cool / 100) / 2}
             temperature={`${temperature}°`}
             onValue1Change={handleValue1Change}
+            onValue2Change={handleValue2Change}
           />
 
           <div

@@ -21,9 +21,10 @@ function drawBlueCircle(ctx, x, y, radius) {
   ctx.fill();
 }
 
-function Gauge({ value1, value2, temperature, onValue1Change }) {
+function Gauge({ value1, value2, temperature, onValue1Change, onValue2Change }) {
   const canvasRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging1, setIsDragging1] = useState(false);
+  const [isDragging2, setIsDragging2] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,7 +45,6 @@ function Gauge({ value1, value2, temperature, onValue1Change }) {
       // console.log(`valueRad1 :>> `, valueRad1);
       const valueRad2 = (maxRad - minRad) * value2 + minRad;
       const toolTipWidth = 100;
-      const tolerance = 10; // The number of pixels outside the circle that should still trigger dragging
 
       const grd = ctx.createLinearGradient(x - radius, 0, x - radius + width, 0);
       grd.addColorStop(0, "red");
@@ -180,9 +180,33 @@ function Gauge({ value1, value2, temperature, onValue1Change }) {
         onValue1Change(newValue1);
       };
 
+      const updateValue2 = (mouseX, mouseY) => {
+        // const angle = Math.atan2(y - mouseY, x - mouseX);
+        const angle = Math.atan2(mouseY - y, mouseX - x);
+        let newValue2 = (angle - minRad) / (maxRad - minRad);
+        // console.log(`newValue2 :>> `, newValue2);
+        if (newValue2 < 0) {
+          newValue2 += 1;
+        }
+        newValue2 = 1 - newValue2;
+        newValue2 = Math.abs(newValue2);
+        newValue2 *= 100;
+        newValue2 = parseInt(newValue2);
+        newValue2 = Math.min(newValue2, 100);
+        onValue2Change(newValue2);
+      };
+
       const isMouseInRedCircle = (mouseX, mouseY) => {
         const centerX = x + radius * Math.cos(valueRad1);
         const centerY = y + radius * Math.sin(valueRad1);
+        const distance = Math.sqrt((mouseX - centerX) ** 2 + (mouseY - centerY) ** 2);
+        // drawBlueCircle(ctx, centerX, centerY, 41);
+        return distance <= 41;
+      };
+
+      const isMouseInBlueCircle = (mouseX, mouseY) => {
+        const centerX = x + radius * Math.cos(valueRad2);
+        const centerY = y + radius * Math.sin(valueRad2);
         const distance = Math.sqrt((mouseX - centerX) ** 2 + (mouseY - centerY) ** 2);
         // drawBlueCircle(ctx, centerX, centerY, 41);
         return distance <= 41;
@@ -192,26 +216,38 @@ function Gauge({ value1, value2, temperature, onValue1Change }) {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+
         if (isMouseInRedCircle(x, y)) {
-          setIsDragging(true);
+          setIsDragging1(true);
+        }
+
+        if (isMouseInBlueCircle(x, y)) {
+          setIsDragging2(true);
         }
       };
 
       const handleMouseMove = (e) => {
-        if (isDragging) {
-          const rect = canvas.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (isDragging1) {
           updateValue1(x, y);
+        }
+
+        if (isDragging2) {
+          updateValue2(x, y);
         }
       };
 
       const handleMouseUp = (e) => {
-        setIsDragging(false);
+        setIsDragging1(false);
+        setIsDragging2(false);
       };
 
       const handleMouseOut = () => {
-        setIsDragging(false);
+        setIsDragging1(false);
+        setIsDragging2(false);
       };
 
       canvas.addEventListener("mousedown", handleMouseDown);
@@ -226,7 +262,7 @@ function Gauge({ value1, value2, temperature, onValue1Change }) {
         canvas.removeEventListener("mouseout", handleMouseOut);
       };
     }
-  }, [value1, value2, temperature, isDragging, onValue1Change]);
+  }, [value1, value2, temperature, isDragging1, isDragging2, onValue1Change, onValue2Change]);
 
   return (
     <div>
