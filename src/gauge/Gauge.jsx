@@ -1,5 +1,4 @@
-import React, { useRef, useEffect } from "react";
-// import canvas from "canvas";
+import React, { useRef, useEffect, useState } from "react";
 
 function drawGreyCircle(ctx, x, y, radius) {
   ctx.beginPath();
@@ -22,12 +21,13 @@ function drawBlueCircle(ctx, x, y, radius) {
   ctx.fill();
 }
 
-function Gauge({ value1, value2, temperature }) {
+function Gauge({ value1, value2, temperature, onValue1Change }) {
   const canvasRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    console.log({ canvas });
+    // console.log({ canvas });
 
     if (canvas) {
       const ctx = canvas.getContext("2d");
@@ -40,12 +40,11 @@ function Gauge({ value1, value2, temperature }) {
       const minRad = 0.75 * Math.PI;
       const maxRad = 2.25 * Math.PI;
       const valueRad1 = (maxRad - minRad) * value1 + minRad;
+      // console.log({ maxRad, minRad, value1 });
+      // console.log(`valueRad1 :>> `, valueRad1);
       const valueRad2 = (maxRad - minRad) * value2 + minRad;
       const toolTipWidth = 100;
-      // const toolTipHeight = 60;
-      // const toolTipArrowHeight = 30;
-      // const hollowCircleRadius = 1;
-      // const hollowCircleRadius2 = 20;
+      const tolerance = 10; // The number of pixels outside the circle that should still trigger dragging
 
       const grd = ctx.createLinearGradient(x - radius, 0, x - radius + width, 0);
       grd.addColorStop(0, "red");
@@ -122,7 +121,8 @@ function Gauge({ value1, value2, temperature }) {
       ctx.strokeStyle = "yellow";
       ctx.stroke();
 
-      const fontSize = 274;
+      // const fontSize = 274;
+      const fontSize = 180;
       const textX = x;
       const textY = y;
       ctx.font = fontSize + "px Arial";
@@ -166,12 +166,115 @@ function Gauge({ value1, value2, temperature }) {
         y + (radius + circularEndWidth / 20) * Math.sin(valueRad2),
         greyCircleRadius
       );
+
+      // const updateValue1 = (mouseX, mouseY) => {
+      //   console.log(`updateValue1 :>> `, { mouseX, mouseY });
+      //   const angle = Math.atan2(mouseY - y, mouseX - x);
+      //   // Calculate the new value1 based on the angle
+      //   const minRad = 0.75 * Math.PI;
+      //   const maxRad = 2.25 * Math.PI;
+      //   let newValue1 = (angle - minRad) / (maxRad - minRad);
+      //   newValue1 *= 200;
+      //   newValue1 = parseInt(newValue1);
+      //   console.log(`newValue1 :>> `, newValue1);
+      //   onValue1Change(newValue1);
+      // };
+
+      const updateValue1 = (mouseX, mouseY) => {
+        // console.log(`updateValue1 :>> `, { mouseX, mouseY });
+        const angle = Math.atan2(mouseY - y, mouseX - x);
+
+        // Calculate the new value1 based on the angle
+        const minRad = 0.75 * Math.PI;
+        const maxRad = 2.25 * Math.PI;
+        let newValue1 = (angle - minRad) / (maxRad - minRad);
+        console.log(`newValue1 :>> `, newValue1);
+
+        // Normalize the angle to be between 0 and 1
+        if (newValue1 < 0) {
+          newValue1 *= -1;
+        }
+
+        // Invert the slider value
+        newValue1 = 1 - newValue1;
+
+        newValue1 = Math.abs(newValue1);
+        newValue1 *= 100;
+        newValue1 = parseInt(newValue1);
+        // newValue1 = 100 - newValue1;
+        // console.log(`newValue1 :>> `, newValue1);
+        // newValue1 = Math.max(newValue1, 100);
+
+        onValue1Change(newValue1);
+      };
+
+      const isMouseInRedCircle = (x, y) => {
+        const centerX = canvas.width / 2 + (radius + 4.5) * Math.cos(valueRad1);
+        const centerY = canvas.height / 2 + (radius - 101) * Math.sin(valueRad1);
+        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+        return distance <= 41;
+      };
+
+      const handleMouseDown = (e) => {
+        // const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        // console.log("handleMouseDown :>> ", { x, y });
+
+        if (isMouseInRedCircle(x, y)) {
+          // console.log("isMouseInRedCircle TRUE :>> ", { x, y });
+          setIsDragging(true);
+          // handleMouseMove()
+        }
+      };
+
+      const handleMouseMove = (e) => {
+        // console.log("handleMouseMove:", e);
+
+        if (isDragging) {
+          // const canvas = canvasRef.current;
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          // console.log("Mouse Move (isDragging):", x, y);
+          updateValue1(x, y);
+        }
+      };
+
+      const handleMouseUp = (e) => {
+        setIsDragging(false);
+      };
+
+      const handleMouseOut = () => {
+        setIsDragging(false);
+      };
+
+      canvas.addEventListener("mousedown", handleMouseDown);
+      canvas.addEventListener("mousemove", handleMouseMove);
+      canvas.addEventListener("mouseup", handleMouseUp);
+      canvas.addEventListener("mouseout", handleMouseOut);
+
+      return () => {
+        canvas.removeEventListener("mousedown", handleMouseDown);
+        canvas.removeEventListener("mousemove", handleMouseMove);
+        canvas.removeEventListener("mouseup", handleMouseUp);
+        canvas.removeEventListener("mouseout", handleMouseOut);
+      };
     }
-  }, [value1, value2, temperature]);
+  }, [value1, value2, temperature, isDragging, onValue1Change]);
 
   return (
     <div>
-      <canvas ref={canvasRef} width="800" height="640" style={{ border: "1px solid #d3d3d3;" }}></canvas>;
+      {/* <canvas ref={canvasRef} width="800" height="640" style={{ border: "1px solid #d3d3d3;" }}></canvas> */}
+
+      <canvas
+        ref={canvasRef}
+        width="800"
+        height="640"
+        style={{ border: "1px solid #d3d3d3;" }}
+        // onMouseMove={(e) => console.log(e)}
+      ></canvas>
     </div>
   );
 }
